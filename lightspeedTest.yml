@@ -1,0 +1,57 @@
+---
+
+- name: Configure Servers
+  hosts: localhost
+  become: true
+
+  tasks:
+
+   - name: install postgresql server
+     become: true
+     ansible.builtin.package:
+       name:
+         - postgresql
+         - postgresql-contrib
+         - python3-psycopg2
+       state: present
+   
+
+
+
+   - name: Run postgresql-setup command
+     ansible.builtin.command: /usr/bin/postgresql-setup --initdb
+     args:
+       creates: /var/lib/pgsql/data/PG_VERSION
+   
+
+
+   - name: Start the service
+     ansible.builtin.service:
+       name: postgresql
+       state: started
+       enabled: true
+   
+
+
+   - name: Allow the traffic through the firewall
+     ansible.posix.firewalld:
+       port: 5432/tcp
+       permanent: true
+       state: enabled
+   
+
+
+   - name: enable httpd service
+     ansible.builtin.service:
+       name: httpd
+       state: started
+       enabled: true
+   
+
+   - name: firewalld üzerinden httpd servisine izin ver
+     ansible.posix.firewalld:
+       service: http
+       permanent: true
+       state: enabled
+
+
